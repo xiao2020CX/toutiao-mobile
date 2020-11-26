@@ -21,10 +21,18 @@ export const sendSms = mobile => {
 export const getUserInfo = () => {
     return request({
         method: "GET",
-        url: '/app/v1_0/user',
+        url: '/app/v1_0/user'
         // 发送请求头数据
-        headers: {
-            Authorization: `Bearer ${store.state.user.token}`
-        }
+        // headers: {
+        //     Authorization: `Bearer ${store.state.user.token}`
+        // }
+    })
+}
+
+// 获取频道列表数据
+export const getUserChannels = () => {
+    return request({
+        method: "GET",
+        url: '/app/v1_0/user/channels'
     })
 }

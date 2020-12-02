@@ -37,6 +37,18 @@ const routes = [
       },
     ]
   },
+  {
+    path: '/search',
+    name: 'search',
+    component: () => import('@/views/search')
+  },
+  {
+    // 之后传递路由参数 可以通过props映射到路由组件当中 使可维护性更好
+    path: '/article/:articleId',
+    name: 'article',
+    component: () => import('@/views/article'),
+    props: true //开启props 传参，就是把路由参数映射到组件的 props数据中
+  }
 
 ]
 

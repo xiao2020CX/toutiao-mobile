@@ -9,6 +9,7 @@
         size="small"
         round
         icon="search"
+        to="/search"
         >搜索</van-button
       >
     </van-nav-bar>
@@ -26,29 +27,55 @@
         <article-list :channel="channel"></article-list>
       </van-tab>
       <div slot="nav-right" class="placeeholder"></div>
-      <div slot="nav-right" class="hamburger-btn">
+      <div
+        slot="nav-right"
+        class="hamburger-btn"
+        @click="isChennelEditShow = true"
+      >
         <i class="toutiao toutiao-gengduo"></i>
       </div>
     </van-tabs>
+    <!-- 频道编辑弹出层 -->
+    <van-popup
+      v-model="isChennelEditShow"
+      closeable
+      position="bottom"
+      :style="{ height: '100%' }"
+      close-icon-position="top-left"
+    >
+      <channel-edit
+        :my-channels="channels"
+        :active-index="active"
+        @update-active="onUpdateActive"
+      ></channel-edit>
+    </van-popup>
   </div>
 </template>
 
 <script>
 import { getUserChannels } from '@/api/user'
 import ArticleList from './components/article-list'
+import ChannelEdit from './components/channel-edit'
+import { mapState } from 'vuex'
+import { getItem } from '@/utils/storage'
+
 export default {
   name: 'HomeIndex',
   components: {
-    ArticleList
+    ArticleList,
+    ChannelEdit
   },
   props: {},
   data() {
     return {
       active: 0, //控制被激活的标签项，尤其是索引
-      channels: [] //频道列表
+      channels: [], //频道列表
+      isChennelEditShow: false //控制编辑频道弹出层的显示状态
     }
   },
-  computed: {},
+  computed: {
+    ...mapState(['user'])
+  },
   watch: {},
   created() {
     this.localChannels()
@@ -57,12 +84,38 @@ export default {
   methods: {
     async localChannels() {
       try {
-        const { data } = await getUserChannels()
-        console.log('data', data)
-        this.channels = data.data.channels
+        // const { data } = await getUserChannels()
+        // // console.log('data', data)
+        // this.channels = data.data.channels
+        let channels = []
+        if (this.user) {
+          // 已登录，请求获取用户频道列表
+          const { data } = await getUserChannels()
+          channels = data.data.channels
+        } else {
+          // 未登录，判断是否有本地的频道列表
+          const localChannels = getItem('TOUTIAO_CHANNELS')
+          // 有的话，就直接拿来用
+          if (localChannels) {
+            channels = localChannels
+          } else {
+            // 没有的话，请求获取默认频道列表
+            const { data } = await getUserChannels()
+            channels = data.data.channels
+          }
+        }
+        this.channels = channels
+        console.log(this.channels)
       } catch (err) {
         this.$toast('获取用户频道失败')
       }
+    },
+    onUpdateActive(index, isChennelEditShow = true) {
+      // console.log('home', index)
+      // 更新激活的频道项
+      this.active = index
+      // 关闭编辑的频道弹层
+      this.isChennelEditShow = isChennelEditShow
     }
   }
 }
